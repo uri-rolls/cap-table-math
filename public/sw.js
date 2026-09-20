@@ -1,5 +1,5 @@
 // Network-first for same-origin GETs, cache fallback offline. Cache name is bumped on every release.
-const CACHE = 'captable-v2.0.0';
+const CACHE = 'captable-v2.1.0';
 const FILES = ['./', './index.html', './style.css', './app.js', './math.js', './progress.js', './visuals.js', './sound.js', './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
