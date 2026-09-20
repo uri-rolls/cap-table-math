@@ -137,10 +137,10 @@ function home() {
     ${rankCard({ hero: true })}
     ${primary}
     <div class="mode-grid">
-      <button class="mode m-daily ${dailyDone ? 'done' : ''}" data-action="start" data-mode="daily"><span class="glyph glyph-date">${new Date().getDate()}</span><span class="mode-title">Daily challenge</span><span class="mode-sub">${dailyDone ? `Done today: ${num(daily)} pts. Play again to beat it.` : 'Same 8 questions for everyone today'}</span></button>
-      <button class="mode m-practice" data-action="start" data-mode="practice"><span class="glyph">∞</span><span class="mode-title">Practice</span><span class="mode-sub">No timer${settings.focus !== 'all' ? `, ${topics[settings.focus].short.toLowerCase()} only` : ''}</span></button>
-      <button class="mode m-deals" data-action="start" data-mode="deals"><span class="glyph glyph-bars"><i style="--w:80%"></i><i style="--w:62%"></i></span><span class="mode-title">Deal room</span><span class="mode-sub">Two offers, keep more</span></button>
-      ${data.lastMisses.length ? `<button class="mode revenge" data-action="start" data-mode="revenge"><span class="glyph">↻</span><span class="mode-title">Revenge round</span><span class="mode-sub">${data.lastMisses.map((k) => topics[k].short).join(', ')}</span></button>` : ''}
+      <button class="mode m-daily ${dailyDone ? 'done' : ''}" data-action="start" data-mode="daily"><span aria-hidden="true" class="glyph glyph-date">${new Date().getDate()}</span><span class="mode-title">Daily challenge</span><span class="mode-sub">${dailyDone ? `Done today: ${num(daily)} pts. Play again to beat it.` : 'Same 8 questions for everyone today'}</span></button>
+      <button class="mode m-practice" data-action="start" data-mode="practice"><span aria-hidden="true" class="glyph">∞</span><span class="mode-title">Practice</span><span class="mode-sub">No timer${settings.focus !== 'all' ? `, ${topics[settings.focus].short.toLowerCase()} only` : ''}</span></button>
+      <button class="mode m-deals" data-action="start" data-mode="deals"><span aria-hidden="true" class="glyph glyph-bars"><i style="--w:80%"></i><i style="--w:62%"></i></span><span class="mode-title">Deal room</span><span class="mode-sub">Two offers, keep more</span></button>
+      ${data.lastMisses.length ? `<button class="mode revenge" data-action="start" data-mode="revenge"><span aria-hidden="true" class="glyph">↻</span><span class="mode-title">Revenge round</span><span class="mode-sub">${data.lastMisses.map((k) => topics[k].short).join(', ')}</span></button>` : ''}
     </div>
     ${masteryStrip()}
     <section class="prefs">

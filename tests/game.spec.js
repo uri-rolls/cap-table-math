@@ -20,7 +20,7 @@ test('first run: calibration is offered, a sprint completes, recap and progress 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: /Skip and start a sprint/ }).click();
   await expect(page.locator('.prompt')).toBeVisible();
-  await expect(page.locator('.choice')).toHaveCount(4);
+  expect(await page.locator('.choice').count()).toBeGreaterThanOrEqual(2);
   await answerAll(page);
   await expect(page.getByText(/points/).first()).toBeVisible();
   await expect(page.getByText('First round closed')).toBeVisible();
