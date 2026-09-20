@@ -16,7 +16,7 @@ test('first run: calibration is offered, a sprint completes, recap and progress 
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('./');
-  await expect(page.getByRole('button', { name: /Start with a 6-question calibration/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Calibrate in 6 questions/ })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: /Skip and start a sprint/ }).click();
   await expect(page.locator('.prompt')).toBeVisible();

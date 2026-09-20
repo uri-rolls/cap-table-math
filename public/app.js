@@ -95,22 +95,31 @@ function render() {
 }
 
 // ---------- home ----------
-function rankCard() {
+function rankCard({ hero = false } = {}) {
   const r = rankFor(data.xp);
   const dots = weekDots(data.days);
-  return `<section class="rank" aria-label="Your rank">
-    <div class="rank-row"><div><span class="rank-name">${r.name}</span><span class="rank-xp">${num(data.xp)} XP</span></div>
-    <div class="week" aria-label="Days trained this week">${dots.map((d) => `<i class="${d.done ? 'on' : ''} ${d.today ? 'today' : ''}" title="${d.key}"></i>`).join('')}<span>${data.days.length} day${data.days.length === 1 ? '' : 's'}</span></div></div>
+  const ladder = RANKS.map((x, i) => `<i class="${i < r.index ? 'done' : i === r.index ? 'now' : ''}" title="${x.name}"></i>`).join('');
+  return `<section class="rank ${hero ? 'hero' : ''}" aria-label="Your rank">
+    <div class="rank-row"><div><span class="rank-kicker">Your stage</span><span class="rank-name">${r.name}</span></div>
+    <div class="rank-ring" aria-hidden="true">${ring(r.progress * 100, 64, 6)}<b>${Math.round(r.progress * 100)}%</b></div></div>
     <div class="xpbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(r.progress * 100)}"><span style="width:${(r.progress * 100).toFixed(1)}%"></span></div>
-    <p class="rank-next">${r.next ? `${num(r.toNext)} XP to ${r.next.name}` : 'Top rank. Keep it sharp.'}</p>
+    <div class="rank-foot"><span class="rank-xp"><b>${num(data.xp)}</b> XP${r.next ? ` · ${num(r.toNext)} to ${r.next.name}` : ' · top stage'}</span>
+    <span class="ladder-dots" aria-label="Stage ${r.index + 1} of ${RANKS.length}">${ladder}</span></div>
+    <div class="week" aria-label="Days trained this week">${dots.map((d) => `<i class="${d.done ? 'on' : ''} ${d.today ? 'today' : ''}" title="${d.key}"></i>`).join('')}<span>${data.days.length} day${data.days.length === 1 ? '' : 's'} trained</span></div>
   </section>`;
 }
 
 function masteryStrip() {
-  return `<a class="mastery-strip" href="#/progress" data-action="progress" aria-label="Topic mastery, open progress">${TOPIC_IDS.map((k) => {
-    const m = mastery(data.topics[k]);
-    return `<span class="ms ms-${m.level}" title="${topics[k].name}: ${m.label}"><b style="--h:${Math.max(8, m.level * 25)}%"></b><small>${topics[k].short}</small></span>`;
-  }).join('')}</a>`;
+  const levels = TOPIC_IDS.map((k) => mastery(data.topics[k]));
+  const mastered = levels.filter((m) => m.level === 4).length;
+  const rated = levels.filter((m) => m.level > 0).length;
+  const summary = mastered ? `${mastered} of 8 mastered` : rated ? `${rated} of 8 rated` : 'Play to rate your topics';
+  return `<a class="mastery-strip" href="#/progress" data-action="progress" aria-label="Topic mastery, open progress">
+    <div class="ms-head"><span>Topics</span><span>${summary}</span></div>
+    <div class="ms-row">${TOPIC_IDS.map((k, i) => {
+      const m = levels[i];
+      return `<span class="ms ms-${m.level}" title="${topics[k].name}: ${m.label}"><b style="--h:${m.level ? m.level * 25 : 0}%"></b><small>${topics[k].short}</small></span>`;
+    }).join('')}</div></a>`;
 }
 
 function home() {
@@ -121,17 +130,17 @@ function home() {
   const primary = resumable
     ? `<button class="cta" data-action="resume"><span class="cta-title">Resume ${MODES[session.mode].name.toLowerCase()}</span><span class="cta-sub">Question ${Math.min(session.answers.length + 1, session.count)} of ${session.count}, ${session.score} points so far</span></button><button class="link" data-action="discard">Discard that round</button>`
     : firstRun
-      ? `<button class="cta" data-action="start" data-mode="calibrate"><span class="cta-title">Start with a 6-question calibration</span><span class="cta-sub">Sets your starting difficulty. About two minutes.</span></button><button class="link" data-action="start" data-mode="sprint">Skip and start a sprint</button>`
+      ? `<button class="cta" data-action="start" data-mode="calibrate"><span class="cta-title">Calibrate in 6 questions</span><span class="cta-sub">Sets your starting difficulty. About two minutes.</span></button><button class="link" data-action="start" data-mode="sprint">Skip and start a sprint</button>`
       : `<button class="cta" data-action="start" data-mode="sprint"><span class="cta-title">Sprint</span><span class="cta-sub">${MODES.sprint.blurb}${data.bests.sprint[settings.typed ? 'typed' : 'choice'] ? ` · best ${num(data.bests.sprint[settings.typed ? 'typed' : 'choice'])}` : ''}</span></button>`;
 
   root.innerHTML = topbar() + `<main class="home">
-    ${rankCard()}
+    ${rankCard({ hero: true })}
     ${primary}
     <div class="mode-grid">
-      <button class="mode ${dailyDone ? 'done' : ''}" data-action="start" data-mode="daily"><span class="mode-title">Daily challenge</span><span class="mode-sub">${dailyDone ? `Done today: ${num(daily)} pts. Play again to beat it.` : 'Same 8 questions for everyone today'}</span></button>
-      <button class="mode" data-action="start" data-mode="practice"><span class="mode-title">Practice</span><span class="mode-sub">No timer${settings.focus !== 'all' ? `, ${topics[settings.focus].short.toLowerCase()} only` : ''}</span></button>
-      <button class="mode" data-action="start" data-mode="deals"><span class="mode-title">Deal room</span><span class="mode-sub">Two offers, keep more</span></button>
-      ${data.lastMisses.length ? `<button class="mode revenge" data-action="start" data-mode="revenge"><span class="mode-title">Revenge round</span><span class="mode-sub">${data.lastMisses.map((k) => topics[k].short).join(', ')}</span></button>` : ''}
+      <button class="mode m-daily ${dailyDone ? 'done' : ''}" data-action="start" data-mode="daily"><span class="glyph glyph-date">${new Date().getDate()}</span><span class="mode-title">Daily challenge</span><span class="mode-sub">${dailyDone ? `Done today: ${num(daily)} pts. Play again to beat it.` : 'Same 8 questions for everyone today'}</span></button>
+      <button class="mode m-practice" data-action="start" data-mode="practice"><span class="glyph">∞</span><span class="mode-title">Practice</span><span class="mode-sub">No timer${settings.focus !== 'all' ? `, ${topics[settings.focus].short.toLowerCase()} only` : ''}</span></button>
+      <button class="mode m-deals" data-action="start" data-mode="deals"><span class="glyph glyph-bars"><i style="--w:80%"></i><i style="--w:62%"></i></span><span class="mode-title">Deal room</span><span class="mode-sub">Two offers, keep more</span></button>
+      ${data.lastMisses.length ? `<button class="mode revenge" data-action="start" data-mode="revenge"><span class="glyph">↻</span><span class="mode-title">Revenge round</span><span class="mode-sub">${data.lastMisses.map((k) => topics[k].short).join(', ')}</span></button>` : ''}
     </div>
     ${masteryStrip()}
     <section class="prefs">
@@ -201,6 +210,7 @@ function submit(input) {
   store.saveSession(session);
   fx(ok ? 'correct' : input === null ? 'timeout' : 'wrong', session.streak);
   render();
+  if (ok) document.querySelector('#score')?.classList.add('pop');
 }
 
 function finish() {
@@ -316,7 +326,7 @@ function results() {
     <h1>${title}</h1>
     <div class="score-hero"><b>${num(s.score)}</b><span>points${recap.personalBest ? ' · new personal best' : ''}</span></div>
     ${recap.rankUp ? `<p class="callout">Promoted to ${recap.rankUp}.</p>` : ''}
-    <section class="rank compact" aria-label="Rank progress"><div class="rank-row"><div><span class="rank-name">${rAfter.name}</span><span class="rank-xp">+${num(s.score)} XP</span></div><span class="rank-xp">${rAfter.next ? `${num(rAfter.toNext)} to ${rAfter.next.name}` : ''}</span></div><div class="xpbar"><span class="from" style="width:${(rBefore.index === rAfter.index ? rBefore.progress * 100 : 0).toFixed(1)}%"></span><span style="width:${(rAfter.progress * 100).toFixed(1)}%"></span></div></section>
+    <section class="rank compact" aria-label="Rank progress"><div class="rank-row"><div><span class="rank-kicker">+${num(s.score)} XP</span><span class="rank-name">${rAfter.name}</span></div><span class="rank-xp">${rAfter.next ? `${num(rAfter.toNext)} to ${rAfter.next.name}` : 'Top stage'}</span></div><div class="xpbar"><span class="from" style="width:${(rBefore.index === rAfter.index ? rBefore.progress * 100 : 0).toFixed(1)}%"></span><span style="width:${(rAfter.progress * 100).toFixed(1)}%"></span></div></section>
     <dl class="stats"><div><dt>Correct</dt><dd>${n}<small>/${total}</small></dd></div><div><dt>Avg time</dt><dd>${avg.toFixed(1)}<small>s</small></dd></div><div><dt>Best run</dt><dd>${s.maxStreak}<small> in a row</small></dd></div></dl>
     ${recap.earned.length ? `<ul class="earned">${recap.earned.map((id) => `<li><b>Milestone</b> ${MILESTONES[id].name}</li>`).join('')}</ul>` : ''}
     ${recap.masteryUps.length ? `<ul class="earned">${recap.masteryUps.map((k) => `<li><b>${mastery(data.topics[k]).label}</b> ${topics[k].name}</li>`).join('')}</ul>` : ''}
